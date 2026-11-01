@@ -38,7 +38,7 @@ class MainActivity : Activity() {
         root.orientation = LinearLayout.VERTICAL
         root.setPadding(pad, pad * 2, pad, pad)
 
-        root.addView(label("Census Assistant v0.4 (DIAG + AVTO)", 20f, true))
+        root.addView(label("Census Assistant v0.5 (DIAG + AVTO)", 20f, true))
         info = label("", 14f, false)
         root.addView(info)
 
@@ -62,7 +62,7 @@ class MainActivity : Activity() {
 
         root.addView(label("5.5d Izoh matni (ixtiyoriy). Bo'sh qolsa, izoh maydoniga hech narsa yozilmaydi:", 12f, false))
         commentBox = EditText(this)
-        commentBox.setText(prefs.getString("comment", "") ?: "")
+        commentBox.setText(prefs.getString("comment", "yaxshi") ?: "yaxshi")
         root.addView(commentBox)
         root.addView(button("Izohni saqlash") {
             prefs.edit().putString("comment", commentBox.text.toString()).apply()

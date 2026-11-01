@@ -70,3 +70,12 @@ Bu versiya telefonda sinalmagan. Har bir sahifada avval KIRITISH natijasini ko'z
 - **TASDIQLASH tugmasi** (2/6 va 3/6): "Avtomatik to'ldirildi" yozuvi bor maydonlarni avval o'zing ko'zdan kechirasan, keyin panelda bir marta TASDIQLASH bosasan; ilova shu sahifadagi "Tasdiqlash" tugmalarini bosib chiqadi. O'zi, sen bosmasdan, hech qachon tasdiqlamaydi.
 - **4/6 xodimlar soni**: panelda "1 xodim, ayol 0" va "1 xodim, ayol 1" tugmalari. Respondentga mosini bos. Boshqacha bo'lsa (yollanma ishchi bor), qo'lda kirit. "Ayollar" soni "Jami"dan oshmasligi kerak.
 - 5/6 xarajat va aylanma hamon qo'lda: har bir respondent uchun o'z baholaringni kiritasan.
+
+## H. v0.5 tuzatishlar
+- 1.5, 1.9, 1.4, 0.x, 2.x savollari: savol sarlavhasi ekrandan chiqib ketgan bo'lsa ham, matni noyob variant butun ekrandan qidiriladi. Pastga, topilmasa tepaga qarab ikki marta skan qilinadi.
+- Tanlash/yozishdan keyin natija yangi ekran nusxasida qayta o'qib tekshiriladi; tasdiqlanmasa "OK" yozilmaydi.
+- Mahalla/ko'cha tekshiruvi harf va raqamdan boshqa belgilarni (apostrof, nuqta, bo'shliq) hisobga olmaydi ("rifat", "ikarimov").
+- TASDIQLASH: har savol kodi (1.1, 1.5, 2.1 ...) bir marta; bosilgach yozuv yo'qolganini tekshiradi; sabab logga yoziladi.
+- 3.1: to'g'ri qiymat turgan bo'lsa, qayta yozilmaydi; sen tugma bosgan bo'lsang, boshqa qiymat almashtiriladi va yangi nusxada tekshiriladi.
+- 5.5 uchun alohida tugma (6/6): respondent shunday degan bo'lsagina o'zing bosasan.
+- Izoh matni sozlamada "yaxshi" bo'lib turadi (o'zgartirish mumkin).

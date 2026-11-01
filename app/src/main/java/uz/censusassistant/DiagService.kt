@@ -50,6 +50,7 @@ class DiagService : AccessibilityService() {
     private var staffBtn1: Button? = null
     private var staffBtn2: Button? = null
     private var confirmBtn: Button? = null
+    private var yzBtn: Button? = null
     private val main = Handler(Looper.getMainLooper())
 
     @Volatile private var stopFlag = false
@@ -252,6 +253,21 @@ class DiagService : AccessibilityService() {
             row2.addView(b, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
         box.addView(row2)
+        val row3 = LinearLayout(this)
+        row3.orientation = LinearLayout.HORIZONTAL
+        val yz = Button(this)
+        yz.text = "5.5: Yuzma-yuz (respondent shunday dedi)"
+        yz.textSize = 11f
+        yz.visibility = View.GONE
+        yz.setOnClickListener {
+            val pg = panelPage
+            startTask(pg, "5.5 belgilanmoqda...") {
+                runApply(pg, listOf(Choice("5.5", "yuzma-yuz intervyu", true, false, "5.5 -> Yuzma-yuz intervyu (sen bosding)", true)))
+            }
+        }
+        row3.addView(yz, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        box.addView(row3)
+        yzBtn = yz
         staffBtn1 = s1
         staffBtn2 = s2
         confirmBtn = cf
@@ -294,6 +310,7 @@ class DiagService : AccessibilityService() {
             staffBtn1 = null
             staffBtn2 = null
             confirmBtn = null
+            yzBtn = null
         }
     }
 
@@ -339,7 +356,7 @@ class DiagService : AccessibilityService() {
     }
 
     private fun showPlan(n: Int) {
-        val rules = Rules.forPage(n, prefs.getString("comment", "") ?: "")
+        val rules = Rules.forPage(n, prefs.getString("comment", "yaxshi") ?: "yaxshi")
         val sb = StringBuilder("$n/6 sahifa\n")
         if (rules.isEmpty()) {
             sb.append("Avtomatik kiritiladigan javob yo'q.\n")
@@ -353,6 +370,7 @@ class DiagService : AccessibilityService() {
             staffBtn1?.visibility = if (n == 4) View.VISIBLE else View.GONE
             staffBtn2?.visibility = if (n == 4) View.VISIBLE else View.GONE
             confirmBtn?.visibility = if (n == 2 || n == 3) View.VISIBLE else View.GONE
+            yzBtn?.visibility = if (n == 6) View.VISIBLE else View.GONE
         }
     }
 
@@ -380,23 +398,39 @@ class DiagService : AccessibilityService() {
     }
 
     // ---- Xodimlar soni: foydalanuvchi bosgan tugma bo'yicha (1 kishi; ayollar 0 yoki 1) ----
-    private fun fillAfter(nodes: List<N>, labelDesc: String, value: String, label: String): String {
+    private fun freshNodes(): List<N> {
+        val r = rootInActiveWindow ?: return emptyList()
+        return flatten(r)
+    }
+
+    private fun editAfterDesc(nodes: List<N>, labelDesc: String): N? {
         val li = nodes.indexOfFirst { !it.isEdit && !it.isOption && it.desc.lowercase() == labelDesc }
-        if (li < 0) return "! $label: maydon topilmadi"
-        var edit: N? = null
+        if (li < 0) return null
         for (i in li + 1 until minOf(nodes.size, li + 7)) {
-            if (nodes[i].isEdit) { edit = nodes[i]; break }
+            if (nodes[i].isEdit) return nodes[i]
         }
-        if (edit == null) return "! $label: kiritish maydoni topilmadi"
-        val empty = edit.info.text.isNullOrEmpty() || edit.info.isShowingHintText
-        if (!empty) return "! $label: maydon bo'sh emas - tegilmadi"
+        return null
+    }
+
+    private fun fillAfter(nodes: List<N>, labelDesc: String, value: String, label: String): String {
+        val edit = editAfterDesc(nodes, labelDesc)
+            ?: return "! $label: maydon topilmadi (sabab: sarlavha yoki uning kiritish maydoni ko'rinmadi)"
+        val cur = edit.info.text?.toString() ?: ""
+        val empty = cur.isEmpty() || edit.info.isShowingHintText
+        if (!empty && cur == value) return "OK $label (allaqachon to'g'ri)"
+        edit.info.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
         val args = Bundle()
         args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
-        if (!edit.info.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) return "! $label: yozilmadi"
-        Thread.sleep(300)
-        edit.info.refresh()
-        val now = edit.info.text?.toString() ?: ""
-        return if (now == value) "OK $label" else "! $label: yozilganini tasdiqlab bo'lmadi - tekshir"
+        if (!edit.info.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
+            return "! $label: yozilmadi (sabab: SET_TEXT rad etildi)"
+        }
+        Thread.sleep(400)
+        val now = editAfterDesc(freshNodes(), labelDesc)?.info?.text?.toString() ?: ""
+        return if (now == value) {
+            if (empty) "OK $label" else "OK $label (eski qiymat almashtirildi)"
+        } else {
+            "! $label: yozildi, lekin ekranda tasdiqlanmadi - qo'lda tekshir"
+        }
     }
 
     private fun runStaff(n: Int, women: Int) {
@@ -418,10 +452,19 @@ class DiagService : AccessibilityService() {
     }
 
     // ---- "Avtomatik to'ldirildi" maydonlarini TASDIQLASH: faqat foydalanuvchi tugmani bosgandan keyin ----
+    private fun questionCode(nodes: List<N>, i: Int): String {
+        for (k in i downTo 0) {
+            val x = nodes[k]
+            if (!x.isOption && !x.isEdit && labelRe.matches(x.desc)) return x.desc.substringBefore(' ')
+        }
+        return "?"
+    }
+
     private fun runConfirm(n: Int) {
         val target = prefs.getString("target", "") ?: ""
         val report = ArrayList<String>()
         val pressedAt = HashSet<String>()
+        val doneCodes = HashSet<String>()
         var pressed = 0
 
         for (i in 0 until 15) {
@@ -450,33 +493,49 @@ class DiagService : AccessibilityService() {
             for (i in nodes.indices) {
                 val x = nodes[i]
                 if (x.isEdit || x.isOption || x.desc.lowercase() != "avtomatik to'ldirildi") continue
+                val code = questionCode(nodes, i)
+                if (code != "?" && doneCodes.contains(code)) continue
                 for (j in i + 1..minOf(i + 3, nodes.size - 1)) {
                     val b = nodes[j]
-                    if (b.cls.endsWith("Button") && b.desc.lowercase() == "tasdiqlash" &&
-                        b.info.isEnabled && b.info.isClickable
-                    ) {
+                    if (b.cls.endsWith("Button") && b.desc.lowercase() == "tasdiqlash") {
+                        if (!b.info.isEnabled || !b.info.isClickable) {
+                            report.add("! $code: Tasdiqlash tugmasi bloklangan - bosilmadi")
+                            if (code != "?") doneCodes.add(code)
+                            break
+                        }
                         val r = Rect()
                         b.info.getBoundsInScreen(r)
-                        val key = r.toShortString()
-                        if (pressedAt.add(key) && b.info.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                            pressed++
-                            report.add("OK Tasdiqlash bosildi ($pressed)")
-                            pressedNow = true
+                        if (!pressedAt.add(r.toShortString())) break
+                        if (code != "?") doneCodes.add(code)
+                        if (!b.info.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                            report.add("! $code: Tasdiqlash bosilmadi (sabab: CLICK rad etildi)")
+                            break
                         }
+                        pressed++
+                        pressedNow = true
+                        Thread.sleep(700)
+                        val fresh = freshNodes()
+                        val still = code != "?" && fresh.indices.any {
+                            fresh[it].desc.lowercase() == "avtomatik to'ldirildi" && questionCode(fresh, it) == code
+                        }
+                        report.add(
+                            if (code == "?") "OK Tasdiqlash bosildi (savol kodi aniqlanmadi, natija tekshirilmadi)"
+                            else if (still) "! $code: Tasdiqlash bosildi, lekin yozuv qoldi - tasdiq qabul qilinmagan bo'lishi mumkin, qo'lda tekshir"
+                            else "OK $code: tasdiqlandi"
+                        )
                         break
                     }
                 }
                 if (pressedNow) break
             }
-            if (pressedNow) {
-                Thread.sleep(600)
-                continue
-            }
+            if (pressedNow) continue
             val sc = findScroll(root) ?: break
             if (!sc.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) break
             Thread.sleep(500)
         }
-        if (pressed == 0) report.add("Tasdiqlanadigan \"Avtomatik to'ldirildi\" maydon topilmadi")
+        if (pressed == 0 && report.isEmpty()) {
+            report.add("Tasdiqlash talab qiladigan maydon yo'q (yoki hammasi allaqachon tasdiqlangan)")
+        }
         finish(n, report, null)
     }
 
@@ -501,12 +560,13 @@ class DiagService : AccessibilityService() {
         return null
     }
 
-    private fun runApply(n: Int) {
+    private fun runApply(n: Int, rulesIn: List<Rule>? = null) {
         val target = prefs.getString("target", "") ?: ""
-        val remaining = Rules.forPage(n, prefs.getString("comment", "") ?: "").toMutableList()
+        val remaining = (rulesIn ?: Rules.forPage(n, prefs.getString("comment", "yaxshi") ?: "yaxshi")).toMutableList()
         val report = ArrayList<String>()
+        var abort: String? = null
 
-        // Avval ro'yxat tepasiga chiqamiz (savol sarlavhalari ko'rinishi uchun)
+        // Avval ro'yxat tepasiga chiqamiz
         for (i in 0 until 15) {
             if (stopFlag) { finish(n, report, "STOP bosildi"); return }
             val r0 = rootInActiveWindow ?: break
@@ -515,25 +575,43 @@ class DiagService : AccessibilityService() {
             Thread.sleep(350)
         }
 
-        for (step in 0 until 25) {
-            if (stopFlag) { finish(n, report, "STOP bosildi"); return }
+        fun scan(): Boolean {
+            if (stopFlag) { abort = "STOP bosildi"; return false }
             val root = rootInActiveWindow
             if (root == null || root.packageName?.toString() != target) {
-                finish(n, report, "Census ilovasi oldingi planda emas - to'xtadi")
-                return
+                abort = "Census ilovasi oldingi planda emas - to'xtadi"
+                return false
             }
             val nodes = flatten(root)
             if (currentPage(nodes) != n) {
-                finish(n, report, "Sahifa o'zgardi - to'xtadi")
-                return
+                abort = "Sahifa o'zgardi - to'xtadi"
+                return false
             }
             processRules(nodes, remaining, report)
+            return true
+        }
+
+        // Pastga qarab
+        for (step in 0 until 25) {
+            if (!scan()) { finish(n, report, abort); return }
             if (remaining.isEmpty()) break
-            val sc = findScroll(root) ?: break
+            val sc = rootInActiveWindow?.let { findScroll(it) } ?: break
             if (!sc.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) break
             Thread.sleep(500)
         }
-        for (r in remaining) report.add("! ${r.label}: ekranda topilmadi - o'zing tekshir")
+        // Topilmaganlar qolsa, tepaga qarab ikkinchi marta (sakrab o'tib ketgan elementlar uchun)
+        if (remaining.isNotEmpty()) {
+            for (step in 0 until 25) {
+                val sc = rootInActiveWindow?.let { findScroll(it) } ?: break
+                if (!sc.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) break
+                Thread.sleep(500)
+                if (!scan()) { finish(n, report, abort); return }
+                if (remaining.isEmpty()) break
+            }
+        }
+        for (r in remaining) {
+            report.add("! [sahifa $n] ${r.label}: bajarilmadi (sabab: element Accessibility daraxtida topilmadi)")
+        }
         finish(n, report, null)
     }
 
@@ -574,14 +652,39 @@ class DiagService : AccessibilityService() {
         return n.info.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
 
-    private fun doChoice(nodes: List<N>, r: Choice, report: MutableList<String>): Boolean {
+    private fun fold(s: String): String = norm(s).lowercase().filter { it.isLetterOrDigit() }
+
+    private fun matches(desc: String, match: String, exact: Boolean): Boolean {
+        val d = desc.lowercase()
+        return if (exact) d == match else d.contains(match)
+    }
+
+    /** Ketma-ket turgan variantlar (bitta savolning tanlov guruhi). */
+    private fun runAround(nodes: List<N>, idx: Int): List<N> {
+        var a = idx
+        var b = idx
+        while (a - 1 >= 0 && nodes[a - 1].isOption) a--
+        while (b + 1 < nodes.size && nodes[b + 1].isOption) b++
+        return nodes.subList(a, b + 1)
+    }
+
+    private fun findTarget(nodes: List<N>, r: Choice): Pair<N, List<N>>? {
         val li = labelIndex(nodes, r.q)
-        if (li < 0) return false
-        val opts = optionsAfter(nodes, li)
-        val t = opts.firstOrNull {
-            val d = it.desc.lowercase()
-            if (r.exact) d == r.match else d.contains(r.match)
-        } ?: return false
+        if (li >= 0) {
+            val opts = optionsAfter(nodes, li)
+            val t = opts.firstOrNull { matches(it.desc, r.match, r.exact) }
+            if (t != null) return Pair(t, opts)
+        }
+        if (!r.anywhere) return null
+        val idx = nodes.indexOfFirst { it.isOption && matches(it.desc, r.match, r.exact) }
+        if (idx < 0) return null
+        return Pair(nodes[idx], runAround(nodes, idx))
+    }
+
+    private fun doChoice(nodes: List<N>, r: Choice, report: MutableList<String>): Boolean {
+        val found = findTarget(nodes, r) ?: return false
+        val t = found.first
+        val opts = found.second
         if (t.info.isChecked) {
             report.add("OK ${r.label} (allaqachon tanlangan)")
             return true
@@ -593,23 +696,32 @@ class DiagService : AccessibilityService() {
             return true
         }
         if (!t.info.isEnabled || !t.info.isClickable) {
-            report.add("! ${r.label}: tanlab bo'lmadi (bloklangan)")
+            report.add("! ${r.label}: tanlab bo'lmadi (sabab: variant bloklangan)")
             return true
         }
         if (!safeClick(t)) {
-            report.add("! ${r.label}: bosilmadi")
+            report.add("! ${r.label}: bosilmadi (sabab: CLICK rad etildi)")
             return true
         }
-        Thread.sleep(350)
-        t.info.refresh()
+        Thread.sleep(400)
+        val after = findTarget(freshNodes(), r)
+        val ok = after != null && after.first.info.isChecked
         report.add(
-            if (t.info.isChecked) "OK ${r.label}"
-            else "! ${r.label}: tanlanganini tasdiqlab bo'lmadi - tekshir"
+            if (ok) "OK ${r.label}"
+            else "! ${r.label}: bosildi, lekin tanlanganligi tasdiqlanmadi - qo'lda tekshir"
         )
         return true
     }
 
     private fun doVerify(nodes: List<N>, r: Verify, report: MutableList<String>): Boolean {
+        if (r.anywhere) {
+            val t = nodes.firstOrNull { it.isOption && it.desc.lowercase().contains(r.expect) } ?: return false
+            report.add(
+                if (t.info.isChecked) "OK ${r.label}: mos"
+                else "! ${r.label}: kutilgan variant tanlanmagan - o'zing tekshir"
+            )
+            return true
+        }
         val li = labelIndex(nodes, r.q)
         if (li < 0) return false
         val opts = optionsAfter(nodes, li)
@@ -626,31 +738,43 @@ class DiagService : AccessibilityService() {
     }
 
     private fun doPresent(nodes: List<N>, r: Present, report: MutableList<String>): Boolean {
-        val found = nodes.any {
-            it.text.lowercase().contains(r.token) || it.desc.lowercase().contains(r.token)
-        }
+        val tok = fold(r.token)
+        val found = nodes.any { fold(it.text).contains(tok) || fold(it.desc).contains(tok) }
         if (found) report.add("OK ${r.label}: ko'rinmoqda")
         return found
     }
 
-    private fun doSetText(nodes: List<N>, r: SetText, report: MutableList<String>): Boolean {
-        val li = labelIndex(nodes, r.q)
-        if (li < 0) return false
-        var edit: N? = null
+    private fun editAfterLabel(nodes: List<N>, q: String): N? {
+        val li = labelIndex(nodes, q)
+        if (li < 0) return null
         for (i in li + 1 until nodes.size) {
-            if (nodes[i].isEdit) { edit = nodes[i]; break }
-            if (nodes[i].cls.endsWith("View") && labelRe.matches(nodes[i].desc)) break
+            if (nodes[i].isEdit) return nodes[i]
+            if (nodes[i].cls.endsWith("View") && labelRe.matches(nodes[i].desc)) return null
         }
-        if (edit == null) return false
-        val empty = edit.info.text.isNullOrEmpty() || edit.info.isShowingHintText
+        return null
+    }
+
+    private fun doSetText(nodes: List<N>, r: SetText, report: MutableList<String>): Boolean {
+        val edit = editAfterLabel(nodes, r.q) ?: return false
+        val cur = edit.info.text?.toString() ?: ""
+        val empty = cur.isEmpty() || edit.info.isShowingHintText
         if (!empty) {
-            report.add("! ${r.label}: maydon bo'sh emas - tegilmadi")
+            report.add("OK ${r.label}: maydon to'ldirilgan - tegilmadi")
             return true
         }
+        edit.info.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
         val args = Bundle()
         args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, r.value)
-        val ok = edit.info.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
-        report.add(if (ok) "OK ${r.label}" else "! ${r.label}: yozilmadi")
+        if (!edit.info.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
+            report.add("! ${r.label}: yozilmadi (sabab: SET_TEXT rad etildi)")
+            return true
+        }
+        Thread.sleep(400)
+        val now = editAfterLabel(freshNodes(), r.q)?.info?.text?.toString() ?: ""
+        report.add(
+            if (now == r.value) "OK ${r.label}"
+            else "! ${r.label}: yozildi, lekin ekranda tasdiqlanmadi - qo'lda tekshir"
+        )
         return true
     }
 }
