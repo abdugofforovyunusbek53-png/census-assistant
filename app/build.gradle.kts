@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "uz.censusassistant.new"
+        applicationId = "uz.censusassistant.avto05"
         minSdk = 26
         targetSdk = 33
         versionCode = 5
