@@ -38,16 +38,35 @@ Android 13'da APK'dan o'rnatilgan ilova uchun bu tugma avval bloklangan bo'ladi:
 
 Agar DIAG tugmasi chiqmasa yoki dump bo'sh bo'lsa — "Xatolik logini ko'rsatish"ni yuboring.
 
+## E. Android Studio o'rnatmasdan, internet orqali APK yig'ish (GitHub Actions, bepul)
+1. https://github.com ga kiring (akkaunt bo'lmasa, bepul oching) -> **New repository** -> nom: `census-assistant` -> **Create**.
+2. Repozitoriyada **uploading an existing file** havolasini bosing. ZIP'ni oching va
+   `CensusAssistant` papkasining ICHIDAGI hamma narsani (app, gradle, .github, settings.gradle.kts va h.k.)
+   sudrab tashlang -> **Commit changes**. `settings.gradle.kts` repozitoriyning eng yuqori qatorida turishi kerak.
+   (`.github` papkasi ko'rinmasa: **Add file -> Create new file**, nomiga `.github/workflows/build.yml`
+   deb yozing va shu ZIP'dagi `.github/workflows/build.yml` matnini joylang.)
+3. **Actions** bo'limi -> chapdan **Build APK** -> **Run workflow**. 5-10 daqiqa kuting.
+4. Yashil belgi chiqqach, ishga tushirilgan yozuvni oching -> pastda **Artifacts** -> `census-assistant-apk`
+   ni yuklab oling (ZIP ichida `app-debug.apk`).
+5. Qizil belgi chiqsa — o'sha sahifadagi xato matnini menga yuboring.
 
-## E. GitHub Actions orqali APK yig‘ish (Android Studio kerak emas)
+## F. AVTO rejimi (v0.3)
+Yangilash: GitHub repozitoriyda `app/` papkasidagi fayllarni ZIP'dagilar bilan almashtiring (E bo'limi), Actions yangi APK yig'adi. Yangi APK'ni eskisining ustiga o'rnating; o'rnatilmasa, avval dump'larni kompyuterga ko'chirib oling.
 
-Bu ZIP ichida GitHub Actions workflow mavjud: `.github/workflows/build-apk.yml`.
+Ishlatish:
+1. Census Assistant'da Census ilovasi (uz.stat.census) tanlangan bo'lsin, **AVTO** tugmasini bosib yoqing.
+2. Census ilovasida har bir sahifa (1/6 ... 6/6) ochilganda tepada panel chiqadi: nima kiritilishi va nimani o'zingiz kiritishingiz yozilgan.
+3. **KIRITISH** bosilgandagina ilova variantlarni belgilaydi. Natija panelda (OK / ! belgilari) chiqadi. "!" bo'lgan joyni o'zingiz tekshiring.
+4. **YOPISH** panelni yashiradi. **STOP** AVTO'ni darhol o'chiradi.
 
-1. GitHub'da yangi repository yarating (masalan, `census-assistant`).
-2. ZIP'ni oching va ichidagi `CensusAssistant` papkasining ichidagi fayl hamda papkalarni repository ildiziga yuklang. Muhim: `.github` yashirin papkasini ham yuklang.
-3. Repository'da **Actions** bo‘limini oching.
-4. Chap tomondan **Build APK** workflow'ini tanlang va **Run workflow** ni bosing.
-5. Jarayon tugagach, bajarilgan run sahifasining pastidagi **Artifacts** bo‘limidan `census-assistant-apk` ni yuklab oling.
-6. ZIP ichidagi `app-debug.apk` faylini telefonga o‘rnating.
+Ilova faqat shularni qiladi: ro'yxatdan tayyor variantni belgilash (RadioButton/CheckBox) va, agar sozlamada izoh yozgan bo'lsangiz, bo'sh izoh maydoniga matn yozish. Boshqa variant allaqachon tanlangan bo'lsa, o'zgartirmaydi, faqat "!" bilan xabar beradi.
+Ilova HECH QACHON bosmaydi: Keyingisi, Orqaga, Tasdiqlash, Yakunlash, GPS nuqtasi, Rasmga olish. Raqamlar, telefon, F.I.Sh., STIR/JShShIR, faoliyat turi va "5.5 afzal usul" sening qo'lingda.
 
-Birinchi build internet orqali Gradle va Android vositalarini yuklaydi. Build muvaffaqiyatsiz bo‘lsa, Actions sahifasidagi qizil xato yozuvini yoki logning oxirgi qismini yuboring.
+DIAG dump'larida endi 9 va undan uzun raqamlar (JShShIR) va GPS koordinatalari maskalanadi.
+
+Bu versiya telefonda sinalmagan. Har bir sahifada avval KIRITISH natijasini ko'zdan kechiring.
+
+## G. v0.4 yangiliklari
+- **TASDIQLASH tugmasi** (2/6 va 3/6): "Avtomatik to'ldirildi" yozuvi bor maydonlarni avval o'zing ko'zdan kechirasan, keyin panelda bir marta TASDIQLASH bosasan; ilova shu sahifadagi "Tasdiqlash" tugmalarini bosib chiqadi. O'zi, sen bosmasdan, hech qachon tasdiqlamaydi.
+- **4/6 xodimlar soni**: panelda "1 xodim, ayol 0" va "1 xodim, ayol 1" tugmalari. Respondentga mosini bos. Boshqacha bo'lsa (yollanma ishchi bor), qo'lda kirit. "Ayollar" soni "Jami"dan oshmasligi kerak.
+- 5/6 xarajat va aylanma hamon qo'lda: har bir respondent uchun o'z baholaringni kiritasan.

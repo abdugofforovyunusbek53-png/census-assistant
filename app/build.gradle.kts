@@ -11,8 +11,8 @@ android {
         applicationId = "uz.censusassistant"
         minSdk = 26
         targetSdk = 33
-        versionCode = 1
-        versionName = "0.1-diag"
+        versionCode = 4
+        versionName = "0.4-avto"
     }
 
     buildTypes {
