@@ -29,6 +29,10 @@ class MainActivity : Activity() {
     private lateinit var commentBox: EditText
     private lateinit var mahallaBox: EditText
     private lateinit var kochaBox: EditText
+    private lateinit var mahallaKeyBox: EditText
+    private lateinit var kochaKeyBox: EditText
+    private lateinit var houseBox: EditText
+    private lateinit var confirmBtn: Button
     private var pad = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +44,7 @@ class MainActivity : Activity() {
         root.orientation = LinearLayout.VERTICAL
         root.setPadding(pad, pad * 2, pad, pad)
 
-        root.addView(label("Anketa Yordamchi 1.0.0 (DIAG + AVTO)", 20f, true))
+        root.addView(label("Anketa Yordamchi 1.1.0 (DIAG + AVTO)", 20f, true))
         info = label("", 14f, false)
         root.addView(info)
 
@@ -75,14 +79,33 @@ class MainActivity : Activity() {
         kochaBox = EditText(this)
         kochaBox.setText(prefs.getString("kocha", "I. Karimov") ?: "")
         root.addView(kochaBox)
+        root.addView(label("0.3 Mahalla QIDIRUV so'zi (ro'yxat qidiruviga shu yoziladi, masalan: fat). Bo'sh qolsa, nomning o'zi yoziladi:", 12f, false))
+        mahallaKeyBox = EditText(this)
+        mahallaKeyBox.setText(prefs.getString("mahalla_key", "fat") ?: "")
+        root.addView(mahallaKeyBox)
+        root.addView(label("0.3 Ko'cha QIDIRUV so'zi (ixtiyoriy):", 12f, false))
+        kochaKeyBox = EditText(this)
+        kochaKeyBox.setText(prefs.getString("kocha_key", "") ?: "")
+        root.addView(kochaKeyBox)
+        root.addView(label("0.3 Keyingi uy raqami. Har bir anketada shu raqam yoziladi va keyin +1 bo'ladi. Bo'sh qolsa, uy raqamiga tegilmaydi:", 12f, false))
+        houseBox = EditText(this)
+        houseBox.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        houseBox.setText(prefs.getString("house_next", "") ?: "")
+        root.addView(houseBox)
         root.addView(button("Sozlamalarni saqlash") {
             prefs.edit()
                 .putString("comment", commentBox.text.toString().trim())
                 .putString("mahalla", mahallaBox.text.toString().trim())
                 .putString("kocha", kochaBox.text.toString().trim())
+                .putString("mahalla_key", mahallaKeyBox.text.toString().trim())
+                .putString("kocha_key", kochaKeyBox.text.toString().trim())
+                .putString("house_next", houseBox.text.toString().trim())
                 .apply()
             Toast.makeText(this, "Saqlandi", Toast.LENGTH_SHORT).show()
         })
+        root.addView(label("Avto-tasdiq: 2/6 va 3/6 sahifalarda \"Avtomatik to'ldirildi\" maydonlari va JShShIR qidirgandan keyin chiqadigan tasdiq oynalari so'ramasdan tasdiqlanadi (Yakunlash/Keyingisi'ga tegilmaydi).", 12f, false))
+        confirmBtn = button("") { toggleConfirm() }
+        root.addView(confirmBtn)
 
         root.addView(label("4. DIAG: Census ekranida DIAG tugmasini bosib dump oling. Panelda TASHXIS tugmasi esa qoidalar ekranda nimani ko'rishini yozadi (dump_trace_...).", 14f, false))
         root.addView(button("Oxirgi dump'ni ko'rsatish") { output.text = latestDump() })
@@ -138,7 +161,15 @@ class MainActivity : Activity() {
         refresh()
     }
 
+    private fun toggleConfirm() {
+        prefs.edit().putBoolean("auto_confirm", !prefs.getBoolean("auto_confirm", true)).apply()
+        refresh()
+    }
+
     private fun refresh() {
+        if (this::confirmBtn.isInitialized) {
+            confirmBtn.text = if (prefs.getBoolean("auto_confirm", true)) "Avto-tasdiq: YOQILGAN (o'chirish uchun bos)" else "Avto-tasdiq: o'chiq (yoqish uchun bos)"
+        }
         val target = prefs.getString("target", "") ?: ""
         val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: ""
         val on = enabled.contains("$packageName/")

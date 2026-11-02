@@ -213,7 +213,7 @@ class FakeApp(val page: Int, val rows: List<Row>) : UiDriver {
         return false
     }
 
-    override fun tap(n: UiNode): Boolean { taps++; return perform(n as FN) }
+    override fun tap(n: UiNode): Boolean { taps++; val f = n as? FN ?: return false; return perform(f) }
 
     override fun setText(n: UiNode, v: String): Boolean {
         val ref = (n as FN).ref

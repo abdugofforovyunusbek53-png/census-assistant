@@ -1,7 +1,18 @@
 package uz.anketayordamchi
 
 /** Foydalanuvchi sozlamalari (telefonda lokal saqlanadi; kodga qattiq yozilmagan). */
-class AutoSettings(val comment: String, val mahalla: String, val kocha: String)
+class AutoSettings(
+    val comment: String,
+    val mahalla: String,
+    val kocha: String,
+    /** Ro'yxat qidiruviga yoziladigan qisqa so'z (masalan "fat"). Bo'sh bo'lsa, nomning o'zi va variantlari yoziladi. */
+    val mahallaKey: String = "",
+    val kochaKey: String = "",
+    /** Keyingi uy raqami; -1 = o'chiq. */
+    val houseNext: Int = -1,
+    /** Uy raqami yozilgach chaqiriladi (hisoblagichni +1 qilish uchun). */
+    val onHouseUsed: () -> Unit = {}
+)
 
 sealed class Rule(val label: String)
 
@@ -18,11 +29,15 @@ class Verify(
 ) : Rule(label)
 
 /** Ro'yxatdan (qidiruvli) nom tanlash: mahalla/ko'cha. */
-class Select(val q: String, val titleStart: String, val target: String, label: String) : Rule(label)
+class Select(
+    val q: String, val titleStart: String, val target: String, label: String,
+    val searchKey: String = ""
+) : Rule(label)
 
 /** Bo'sh matn maydoniga qiymat yozadi. To'lgan maydonga tegmaydi. */
 class SetText(
-    val q: String, val value: String, label: String, val titleHas: String? = null
+    val q: String, val value: String, label: String, val titleHas: String? = null,
+    val titleStart: String? = null, val onDone: (() -> Unit)? = null
 ) : Rule(label)
 
 /** Yonma-yon maydonlardan biri (masalan 3.1: "Jami", "shundan, ayollar"). Foydalanuvchi tugmasi bosilgandagina ishlaydi. */
@@ -43,17 +58,32 @@ object Rules {
                 Choice("0.2", "umumiy kirish joyi", false, false, "0.2 -> Umumiy kirish joyi"),
                 Choice("0.4", "ha, ochiq", true, false, "0.4 -> Ha, ochiq")
             )
-            if (st.mahalla.isNotBlank()) l.add(Select("0.3", "mahalla", st.mahalla, "0.3 Mahalla -> ${st.mahalla}"))
-            if (st.kocha.isNotBlank()) l.add(Select("0.3", "kocha", st.kocha, "0.3 Ko'cha -> ${st.kocha}"))
+            if (st.houseNext >= 0) {
+                l.add(
+                    SetText(
+                        "0.3", st.houseNext.toString(), "0.3 Uy raqami -> ${st.houseNext}",
+                        titleStart = "uyraqami", onDone = st.onHouseUsed
+                    )
+                )
+            }
+            if (st.mahalla.isNotBlank() || st.mahallaKey.isNotBlank()) {
+                l.add(Select("0.3", "mahalla", st.mahalla, "0.3 Mahalla -> ${st.mahalla.ifBlank { st.mahallaKey }}", st.mahallaKey))
+            }
+            if (st.kocha.isNotBlank() || st.kochaKey.isNotBlank()) {
+                l.add(Select("0.3", "kocha", st.kocha, "0.3 Ko'cha -> ${st.kocha.ifBlank { st.kochaKey }}", st.kochaKey))
+            }
             l
         }
         2 -> listOf(
             Choice("1.4", "alohida mustaqil korxona", false, false, "1.4 -> Alohida mustaqil korxona/shaxs"),
             Verify("1.5", "o'zini o'zi band qilgan", "1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs", setIfEmpty = true),
             Choice("1.5d", "naqd pul orqali", true, false, "1.5d -> Naqd pul orqali"),
+            // "|" bilan ajratilgan variantlar ketma-ket sinab ko'riladi (birinchi mos kelgani tanlanadi).
             Choice(
-                "1.9", "yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas", false, true,
-                "1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas", titleHas = "internetdanfoydalan"
+                "1.9",
+                "yo'q, foydalanmadi|yo'q, foydalanmaydi|foydalanmadi|foydalanmaydi|yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas|yo'q",
+                false, true,
+                "1.9 Internet -> Yo'q, foydalanmadi", titleHas = "internetdanfoydalan"
             )
         )
         3 -> listOf(
@@ -83,9 +113,9 @@ object Rules {
 
     /** Foydalanuvchi o'zi bajaradigan ishlar (ilova ularga tegmaydi). */
     fun manual(n: Int): String = when (n) {
-        1 -> "GPS tugmasi, rasmga olish, 0.3 uy raqami/mo'ljal"
-        2 -> "STIR/JShShIR qidirish, 1.10 telefon. Avto-to'ldirilganlarni ko'zdan kechirib TASDIQLASH ni bos"
-        3 -> "2.3a faoliyat turi, 2.3d tavsif, 2.3c. Avto-to'ldirilgan bo'lsa TASDIQLASH"
+        1 -> "GPS tugmasi, rasmga olish (uy raqami: sozlamada yoqilgan bo'lsa avtomatik, aks holda qo'lda)"
+        2 -> "STIR/JShShIR qidirish, 1.10 telefon (chiqqan tasdiq oynalari avtomatik tasdiqlanadi)"
+        3 -> "2.3a faoliyat turi, 2.3d tavsif, 2.3c (avto-to'ldirilganlar avtomatik tasdiqlanadi)"
         4 -> "3.1: respondentga mos tugmani bos (1 xodim, ayol 0 yoki 1) yoki qo'lda kirit"
         5 -> "4.1 xarajat va 4.2 aylanma (haqiqiy summalar)"
         6 -> "5.5a F.I.Sh., 5.5c telefon. Yakunlash'ni o'zing bos"

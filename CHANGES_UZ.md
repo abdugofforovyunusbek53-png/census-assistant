@@ -1,4 +1,26 @@
-# O'zgarishlar (CensusAssistant v0.4 -> Anketa Yordamchi 1.0.0)
+# O'zgarishlar (Anketa Yordamchi 1.0.0 -> 1.1.0)
+
+`applicationId` o'zgarmadi (`uz.anketayordamchi.app`): 1.0.0 ustiga yangilanadi, sozlamalar saqlanadi. `versionCode` 2.
+
+| # | So'rov | Nima qilindi |
+|---|---|---|
+| 1 | Mahalla ro'yxatdan topilmadi, "fat" deb qidirsa chiqadi | Yangi sozlama **Mahalla QIDIRUV so'zi** (standart: `fat`). Ro'yxat qidiruviga birinchi shu yoziladi, so'ng natijalar ichidan mahalla nomi (`Ma'rifat`) aynan mos kelganini tanlaydi. Nom bo'sh bo'lsa va natija bitta bo'lsa, o'shani tanlaydi. Ro'yxatni ochish uchun 4 xil usul ketma-ket sinaladi (bosiladigan element -> matn maydoni -> maydon qutisining YUQORI qismiga bosish -> boshqa). Yozish `set` -> `fokus+set` -> `paste` tartibida, maydonda so'z ko'ringunicha. Topilmasa, xabarda ro'yxatda ko'ringan nomlar chiqadi. Ko'cha uchun ham ixtiyoriy qidiruv so'zi bor. |
+| 2 | Uy raqami tartib bilan o'sib borsin | Yangi sozlama **Keyingi uy raqami**. 1/6 sahifada bo'sh `0.3 Uy raqami` maydoniga shu raqam yoziladi va hisoblagich +1 bo'ladi. To'lgan maydonga tegilmaydi (qayta KIRITISH bosilsa, ikki marta oshmaydi). To'liq panelda `Uy raqami -1 / +1` tugmalari bor. Sozlama bo'sh bo'lsa, uy raqamiga tegilmaydi. |
+| 3 | 1.9 da "Yo'q, foydalanmadi" belgilansin | Variantlar ketma-ket sinaladi: `yo'q, foydalanmadi`, `yo'q, foydalanmaydi`, `foydalanmadi`, `foydalanmaydi`, eski `yo'q, veb-sayt...`, oxirida `yo'q`. Mos kelmasa, ko'ringan variantlar xatoda chiqadi. |
+| 4 | JShShIR qidirgandan keyingi 4 ta oyna so'ramasdan tasdiqlansin | **Avto-tasdiq** (sozlamada yoqish/o'chirish tugmasi, standart YOQILGAN). (a) 2/6, 3/6, 6/6 da "Avtomatik to'ldirildi" + "Tasdiqlash" paydo bo'lishi bilan o'zi bosadi (ekranni aylantirmasdan, har birini bir martadan). (b) 2/6 va 3/6 dan keyin chiqqan alohida oyna/dialogda "Tasdiqlash / Ha / OK" tugmasini bosadi. Oynada yakunlash/chiqish/o'chirish/bekor/saqlash so'zlari bo'lsa tegmaydi. "Keyingisi", "Orqaga", "Yakunlash" tugmalariga hamon hech qachon tegilmaydi. Oyna tugmalari topilmasa, log'ga tugmalar ro'yxati yoziladi. |
+| 5 | Panel ekranni yopib qo'yadi, matn kiritish qiyin | Panel endi odatda **kichik (mini)**: 3 ta tugma (sahifa belgisi, ▶ KIRITISH, ■ STOP), surib yuriladi (belgi tugmasini ushlab sudrang), joyi eslab qolinadi. Belgini bosish - to'liq panelni ochadi (natijalar), "KICHRAYTIRISH" - yopadi. Natija chiqqanda to'liq panel o'zi ochiladi. **Klaviatura ochilganda hamma panel va DIAG tugmasi yashiriladi**, yopilganda qaytadi. To'liq panel matni 28% balandlikda skroll qilinadi. |
+
+## Boshqa
+- 2/6, 3/6, 6/6 sahifalarda yangi sahifaga o'tganda "bosilgan Tasdiqlash" xotirasi tozalanadi (eski versiyada keyingi anketada ham qayta bosilmay qolishi mumkin edi).
+- `accessibility_service_config.xml`: `typeWindowsChanged` qo'shildi (klaviatura ochilishini bilish uchun).
+
+## Tekshiruv holati (muhim)
+Bu sandbox'da Kotlin kompilyatori va Android SDK yo'q edi: kod **kompilyatsiya qilinmagan** va `verify/` sinovlari qayta **ishga tushirilmagan** (eski `NATIJA.txt` o'chirildi). Qavslar muvozanati va mantiq qo'lda tekshirilgan. GitHub Actions build qizil chiqsa, xato matnini yuboring.
+Qurilmada sinash kerak: mahalla ro'yxati ochilishi va "fat" yozilgani, alohida tasdiq oynalarining haqiqiy ko'rinishi (menda dump yo'q), uy raqami maydoniga yozish.
+
+---
+
+# Oldingi o'zgarishlar (CensusAssistant v0.4 -> Anketa Yordamchi 1.0.0)
 
 Yangi nom va yangi `applicationId` (`uz.anketayordamchi.app`): eskisining ustiga yozilmaydi.
 Barcha DIAG imkoniyatlari saqlandi (DIAG tugmasi, dump'lar, nusxalash, log) va kengaytirildi.

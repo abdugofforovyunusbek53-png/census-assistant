@@ -82,6 +82,17 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
         return o.labels.any { val f = fz(it); if (exact) f == m else f.contains(m) }
     }
 
+    /** match ichida "|" bilan ajratilgan variantlar bo'lishi mumkin: ketma-ket sinaladi, birinchi mos kelgani olinadi. */
+    private fun pick(opts: List<OptionInfo>, match: String, exact: Boolean): OptionInfo? {
+        for (alt in match.split("|")) {
+            val a = alt.trim()
+            if (a.isEmpty()) continue
+            val hit = opts.firstOrNull { matches(it, a, exact) }
+            if (hit != null) return hit
+        }
+        return null
+    }
+
     private fun describeOpts(opts: List<OptionInfo>): String =
         if (opts.isEmpty()) "yo'q" else opts.joinToString("; ") { "${it.shortLabel().take(25)}[${if (it.on) "on" else "off"}]" }
 
@@ -164,7 +175,7 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
     private fun findOption(s: Snapshot, r: Choice): OptionInfo? {
         val li = labelFor(s, r.q, null, r.titleHas)
         if (li < 0) return null
-        return s.options(li, s.blockEnd(li)).firstOrNull { matches(it, r.match, r.exact) }
+        return pick(s.options(li, s.blockEnd(li)), r.match, r.exact)
     }
 
     private fun doChoice(r: Choice, s: Snapshot, atEnd: Boolean): Res? {
@@ -172,7 +183,7 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
         if (li < 0) return notFound(r, atEnd)
         val end = s.blockEnd(li)
         val opts = s.options(li, end)
-        val t = opts.firstOrNull { matches(it, r.match, r.exact) }
+        val t = pick(opts, r.match, r.exact)
         if (t == null) {
             return if (s.blockClosed(li) || atEnd) {
                 Res(listOf("! ${r.label}: variant topilmadi. Ko'ringanlar: ${describeOpts(opts)}"), false)
@@ -295,7 +306,7 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
     }
 
     private fun doSetText(r: SetText, s: Snapshot, atEnd: Boolean): Res? {
-        val li = labelFor(s, r.q, null, r.titleHas)
+        val li = labelFor(s, r.q, r.titleStart, r.titleHas)
         if (li < 0) return notFound(r, atEnd)
         val end = s.blockEnd(li)
         val e = s.editFor(li, end)
@@ -303,8 +314,11 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
             return if (s.blockClosed(li) || atEnd) Res(listOf("! ${r.label}: kiritish maydoni (EditText) topilmadi - TASHXIS bosing"), false) else null
         }
         val line = fillEdit(r.label, e, r.value, false) { s2 ->
-            val l2 = labelFor(s2, r.q, null, r.titleHas)
+            val l2 = labelFor(s2, r.q, r.titleStart, r.titleHas)
             if (l2 < 0) null else s2.editFor(l2, s2.blockEnd(l2))
+        }
+        if (line.startsWith("OK")) {
+            try { r.onDone?.invoke() } catch (_: Exception) {}
         }
         return Res(listOf(line))
     }
@@ -336,20 +350,36 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
     // ---------------------------------------------------------------- ro'yxatdan nom tanlash (mahalla / ko'cha)
     private fun key(n: UiNode) = "${n.cls}|${n.left},${n.top},${n.right},${n.bottom}|${n.label()}"
 
-    private fun pickOpener(s: Snapshot, li: Int, end: Int): UiNode? {
+    /**
+     * Ro'yxatni ochish uchun urinishlar ketma-ketligi: 1) bosiladigan element, 2) matn maydoni,
+     * 3) maydon qutisining YUQORI qismiga koordinata bilan bosish (pastida xato yozuvi bo'lishi mumkin),
+     * 4) blokdagi birinchi matnli element.
+     */
+    private fun openers(s: Snapshot, li: Int, end: Int): List<UiNode> {
         val label = s.nodes[li]
         val inBlock = (li + 1 until end).map { s.nodes[it] }
         val ok = inBlock.filter { !s.isNav(it) && it.top >= label.bottom - 6 }
-        ok.firstOrNull { it.clickable && it.enabled && !it.isControl() }?.let { return it }
-        ok.firstOrNull { it.isEdit() }?.let { return it }
-        return ok.firstOrNull { it.label().isNotEmpty() }
+        val out = ArrayList<UiNode>()
+        ok.firstOrNull { it.clickable && it.enabled && !it.isControl() }?.let { out.add(it) }
+        ok.firstOrNull { it.isEdit() }?.let { out.add(it) }
+        val box = ok.filter { it.h >= 60 && (it.right - it.left) >= 300 && parseLabel(it.label()) == null && !it.isControl() }
+            .minByOrNull { it.top }
+        if (box != null) {
+            val y = box.top + minOf(50, box.h / 2)
+            out.add(SynthNode(box.left + 40, y - 10, box.right - 40, y + 10))
+        }
+        ok.firstOrNull { it.label().isNotEmpty() }?.let { out.add(it) }
+        return out.distinct()
     }
 
-    private fun currentValueLine(s: Snapshot, r: Select): Pair<Boolean, String>? {
+    private fun currentValueLine(s: Snapshot, r: Select, alt: String = ""): Pair<Boolean, String>? {
         val li = s.findLabel(r.q, r.titleStart)
         if (li < 0) return null
         val vals = s.valueTexts(li, s.blockEnd(li))
-        val hit = vals.firstOrNull { nameMatch(it, r.target) == 2 }
+        val fa = fz(alt)
+        val hit = vals.firstOrNull { v ->
+            nameMatch(v, r.target) == 2 || (fa.length >= 3 && fz(v).contains(fa))
+        }
         return if (hit != null) true to hit else false to (vals.firstOrNull() ?: "")
     }
 
@@ -361,51 +391,88 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
         val cur = currentValueLine(s0, r)!!
         if (cur.first) return Res(listOf("OK ${r.label} (allaqachon tanlangan: ${cur.second.take(40)})"), false)
 
-        val opener = pickOpener(s0, li, end)
-            ?: return Res(listOf("! ${r.label}: ochuvchi element topilmadi - TASHXIS bosing"), false)
         val before = s0.nodes.map { key(it) }.toHashSet()
-        if (!opener.visible) { ui.reveal(opener); ui.sleep(300) }
-        if (!press(opener)) return Res(listOf("! ${r.label}: ro'yxatni ochib bo'lmadi"), false)
 
-        // Ro'yxat ochilishini kutamiz: daraxtda yangi tugunlar paydo bo'lishi kerak.
+        // 1) Ro'yxatni ochish: har bir usuldan keyin daraxtda yangi tugunlar paydo bo'lishini kutamiz.
         var s1: Snapshot? = null
-        for (k in 0 until 8) {
-            ui.sleep(350)
+        val ops = openers(s0, li, end)
+        if (ops.isEmpty()) return Res(listOf("! ${r.label}: ochuvchi element topilmadi - TASHXIS bosing"), false)
+        for (op in ops) {
             check()
-            val t = fresh()
-            if (t.nodes.any { key(it) !in before }) { s1 = t; break }
+            if (op !is SynthNode && !op.visible) { ui.reveal(op); ui.sleep(300) }
+            if (!press(op)) continue
+            for (k in 0 until 8) {
+                ui.sleep(350)
+                check()
+                val t = fresh()
+                if (t.nodes.any { key(it) !in before }) { s1 = t; break }
+            }
+            if (s1 != null) break
         }
         if (s1 == null) return Res(listOf("! ${r.label}: ro'yxat ochilmadi (ekran o'zgarmadi)"), false)
 
         fun newNodes(t: Snapshot) = t.nodes.filter { key(it) !in before }
+
+        /** Ro'yxatdagi natijalar: matn -> element. Faqat aylantiriladigan ro'yxat ichidagilar (orqa fon/yopish elementi emas). */
+        fun results(t: Snapshot): Map<String, UiNode> {
+            val nn = newNodes(t)
+            val cands = nn.filter { !it.isEdit() && it.label().isNotEmpty() && parseLabel(it.label()) == null }
+            val scrolls = nn.filter {
+                it.scrollable || it.cls.endsWith("ScrollView") || it.cls.endsWith("RecyclerView") || it.cls.endsWith("ListView")
+            }
+            val inList = if (scrolls.isEmpty()) cands else cands.filter { c -> scrolls.any { sc -> sc === c || isAncestor(sc, c) } }
+            val use = if (inList.isEmpty()) cands else inList
+            val m = LinkedHashMap<String, UiNode>()
+            for (c in use) m.putIfAbsent(c.label(), c)
+            return m
+        }
+
         val searchBox = newNodes(s1).firstOrNull { it.isEdit() && it.enabled }
         val seenTexts = LinkedHashSet<String>()
-        var picked: UiNode? = null
         var pickedText = ""
+        var picked = false
         var similar: List<String> = emptyList()
         var ambiguous: List<String> = emptyList()
 
         fun evaluate(t: Snapshot): Boolean {
-            val cands = newNodes(t).filter { !it.isEdit() && it.label().isNotEmpty() && parseLabel(it.label()) == null }
-            val byText = LinkedHashMap<String, UiNode>()
-            for (c in cands) { seenTexts.add(c.label()); byText.putIfAbsent(c.label(), c) }
+            val byText = results(t)
+            for (k in byText.keys) seenTexts.add(k)
             val exact = byText.filter { nameMatch(it.key, r.target) == 2 }
             val near = byText.filter { nameMatch(it.key, r.target) == 1 }
-            if (exact.size == 1) { picked = exact.values.first(); pickedText = exact.keys.first(); return true }
+            if (exact.size == 1) { pickedText = exact.keys.first(); picked = true; return true }
             if (exact.size > 1) { ambiguous = exact.keys.toList(); return true }
+            // Nom berilmagan, faqat qidiruv so'zi: natija bitta bo'lsa o'shani tanlaymiz (foydalanuvchi so'zni o'zi tanlagan).
+            if (r.target.isBlank() && r.searchKey.isNotBlank() && byText.size == 1) {
+                pickedText = byText.keys.first(); picked = true; return true
+            }
             similar = near.keys.toList()
+            return false
+        }
+
+        /** Qidiruv maydoniga yozadi: set -> fokus+set -> paste. Maydonda so'z ko'ringanda true. */
+        fun typeSearch(q: String): Boolean {
+            for (attempt in 0 until 3) {
+                check()
+                val node = newNodes(fresh()).firstOrNull { it.isEdit() && it.enabled } ?: searchBox ?: return false
+                when (attempt) {
+                    0 -> ui.setText(node, q)
+                    1 -> { ui.click(node); ui.focus(node); ui.setText(node, q) }
+                    else -> ui.paste(node, q)
+                }
+                ui.sleep(900)
+                val e = newNodes(fresh()).firstOrNull { it.isEdit() }
+                if (e != null && fz(e.value()) == fz(q)) return true
+            }
             return false
         }
 
         var decided = false
         if (searchBox != null) {
-            for (q in searchQueries(r.target)) {
+            val queries = ((if (r.searchKey.isNotBlank()) listOf(r.searchKey.trim()) else emptyList()) + searchQueries(r.target)).distinct()
+            for (q in queries) {
                 check()
-                val node = newNodes(fresh()).firstOrNull { it.isEdit() } ?: searchBox
-                ui.setText(node, q)
-                ui.sleep(900)
-                val t = fresh()
-                if (evaluate(t)) { decided = true; break }
+                if (!typeSearch(q)) ui.log("${r.label}: qidiruv maydoniga \"$q\" yozilganini tasdiqlab bo'lmadi")
+                if (evaluate(fresh())) { decided = true; break }
             }
         } else {
             // Qidiruv maydoni yo'q: oddiy ro'yxat. Ro'yxatni aylantirib ko'ramiz.
@@ -426,22 +493,26 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
         if (ambiguous.isNotEmpty()) {
             return Res(listOf("! ${r.label}: bir nechta aynan mos natija (${ambiguous.take(4).joinToString(" | ") { it.take(30) }}) - TANLANMADI, o'zing tanla"), false, abort = true)
         }
-        val pk = picked
-        if (pk == null) {
+        if (!picked) {
+            val shown = seenTexts.take(6).joinToString(" | ") { it.take(30) }
             val tail = if (similar.isNotEmpty()) " O'xshash (avtomatik tanlanmadi): ${similar.take(4).joinToString(" | ") { it.take(30) }}." else ""
             ui.log("${r.label}: ro'yxatda ko'rilgan matnlar: ${seenTexts.take(25).joinToString(" | ") { it.take(30) }}")
-            return Res(listOf("! ${r.label}: ro'yxatda aynan mos natija topilmadi.$tail Ro'yxat ochiq qoldi"), false, abort = true)
+            val seenPart = if (shown.isNotEmpty()) " Ko'ringanlar: $shown." else " Ro'yxatda natija ko'rinmadi."
+            return Res(listOf("! ${r.label}: ro'yxatda aynan mos natija topilmadi.$tail$seenPart Ro'yxat ochiq qoldi"), false, abort = true)
         }
 
-        // Tanlash: nomzodni yoki uning bosiladigan otasini bosamiz.
-        if (!press(pk)) return Res(listOf("! ${r.label}: '${pickedText.take(30)}' topildi, lekin bosilmadi. Ro'yxat ochiq qoldi"), false, abort = true)
+        // Tanlash: yangi ekranda shu matnli elementni qayta topib bosamiz (eski tugun eskirgan bo'lishi mumkin).
+        val pk = results(fresh())[pickedText]
+        if (pk == null || !press(pk)) {
+            return Res(listOf("! ${r.label}: '${pickedText.take(30)}' topildi, lekin bosilmadi. Ro'yxat ochiq qoldi"), false, abort = true)
+        }
 
         // To'g'riligini tekshirish: ro'yxat yopilib, maydonda aynan shu nom ko'rinishi kerak.
         for (k in 0 until 8) {
             ui.sleep(400)
             check()
             val t = fresh()
-            val now = currentValueLine(t, r)
+            val now = currentValueLine(t, r, pickedText)
             if (now != null && now.first) {
                 val still = t.nodes.any { it.isEdit() && key(it) !in before && it.enabled }
                 if (!still) return Res(listOf("OK ${r.label} (tanlandi: ${now.second.take(40)})"))
@@ -468,17 +539,28 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
      * Faqat foydalanuvchi TASDIQLASH tugmasini bosgandan keyin: "Avtomatik to'ldirildi" yozuvi va yonida
      * "Tasdiqlash" tugmasi bor savollarni BIR MARTA tasdiqlaydi va natijani tekshiradi.
      */
-    fun confirm(n: Int): RunResult {
+    private fun confKey(n: Int, code: String, marker: UiNode): String =
+        if (code == "?") "$n|?${marker.cy / 40}" else "$n|$code"
+
+    /** Hozirgi ekranda hali bosilmagan, yoqilgan \"Tasdiqlash\" tugmasi bor \"Avtomatik to'ldirildi\" maydoni bormi. */
+    fun hasNewConfirm(s: Snapshot, n: Int): Boolean =
+        pendingConfirms(s).any { (code, mk, btn) -> btn != null && btn.enabled && confKey(n, code, mk) !in state.pressed }
+
+    /**
+     * sweep=true: sahifani boshidan oxirigacha aylantirib chiqadi (qo'lda TASDIQLASH tugmasi).
+     * sweep=false: faqat hozir ko'rinib turganini tasdiqlaydi, ekranni aylantirmaydi (avto-tasdiq).
+     */
+    fun confirm(n: Int, sweep: Boolean = true): RunResult {
         val handled = LinkedHashMap<String, String>()
         var note: String? = null
         try {
-            scrollTop()
+            if (sweep) scrollTop()
             var prev: String? = null
             for (guard in 0 until 80) {
                 val s = need(n)
                 var pressedOne = false
-                for ((code, _, btn) in pendingConfirms(s)) {
-                    val key = "$n|$code"
+                for ((code, mk, btn) in pendingConfirms(s)) {
+                    val key = confKey(n, code, mk)
                     if (handled.containsKey(key)) continue
                     if (btn == null) {
                         handled[key] = "- $code: Avtomatik to'ldirildi yozuvi bor, lekin Tasdiqlash tugmasi yo'q (allaqachon tasdiqlangan bo'lishi mumkin)"
@@ -508,6 +590,7 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
                     break // ekran o'zgardi: qaytadan o'qiymiz
                 }
                 if (pressedOne) continue
+                if (!sweep) break
                 val sig = s.signature()
                 if (sig == prev) break
                 prev = sig
@@ -518,10 +601,49 @@ class Engine(private val ui: UiDriver, private val st: AutoSettings, private val
             note = e.message
         }
         val lines = ArrayList(handled.values)
-        if (lines.isEmpty() && note == null) {
+        if (lines.isEmpty() && note == null && sweep) {
             lines.add("- Bu sahifada tasdiqlanadigan \"Avtomatik to'ldirildi\" maydon yo'q (xato emas: hammasi tasdiqlangan yoki talab qilinmaydi)")
         }
         return RunResult(lines, note)
+    }
+
+    // ---------------------------------------------------------------- tasdiq oynalari (JShShIR qidirgandan keyin)
+    private val dialogOk = setOf("tasdiqlash", "tasdiqlayman", "ha", "ok", "oke", "davom", "davometish", "davomettirish", "togri")
+    private val dialogDanger = listOf("yakunla", "chiqish", "chiqmoq", "ochir", "bekor", "saqla", "yuborish", "topshir", "logout")
+
+    /**
+     * JShShIR qidirilgach chiqadigan ma'lumot oynalarini (F.I.Sh., yil, yo'nalish) so'ramasdan tasdiqlaydi:
+     * oynadagi \"Tasdiqlash\" / \"Ha\" / \"OK\" tugmasini BIR marta bosadi. Oynada \"yakunlash/chiqish/o'chirish/bekor/saqlash\"
+     * kabi so'z bo'lsa, tegmaydi. Keyingisi/Orqaga/Yakunlash tugmalariga baribir tegilmaydi (press() to'sig'i).
+     * Oyna yo'q bo'lsa bo'sh natija qaytaradi.
+     */
+    fun confirmDialog(s: Snapshot): RunResult {
+        val roots = s.nodes.filter { it.parent == null }
+        val scope: List<UiNode> = when {
+            roots.size >= 2 -> roots.drop(1).flatMap { descendants(it) }
+            s.page() == null -> s.nodes
+            else -> return RunResult(emptyList(), null)
+        }
+        val all = scope.flatMap { it.texts() }.map { fz(it) }
+        val danger = dialogDanger.firstOrNull { d -> all.any { it.contains(d) } }
+        val btns = scope.filter {
+            !it.isEdit() && it.enabled && (it.clickable || it.parent?.clickable == true) && fz(it.label()) in dialogOk
+        }
+        if (btns.isEmpty()) {
+            val labels = scope.filter { it.clickable || it.parent?.clickable == true }.map { it.label().take(20) }
+                .filter { it.isNotEmpty() }.distinct().take(6)
+            return if (roots.size >= 2 || labels.isNotEmpty()) {
+                RunResult(listOf("- oyna bor, tasdiqlash tugmasi topilmadi. Tugmalar: ${labels.joinToString(" | ")}"), null)
+            } else RunResult(emptyList(), null)
+        }
+        if (danger != null) {
+            return RunResult(listOf("- oyna tegilmadi: matnida \"$danger\" bor"), null)
+        }
+        val btn = btns.first()
+        val label = btn.label().take(20)
+        if (!press(btn)) return RunResult(listOf("! oyna: \"$label\" tugmasi bosilmadi"), null)
+        ui.sleep(700)
+        return RunResult(listOf("OK oyna tasdiqlandi: \"$label\" (oynada ${all.size} ta matn)"), null)
     }
 
     // ---------------------------------------------------------------- TASHXIS

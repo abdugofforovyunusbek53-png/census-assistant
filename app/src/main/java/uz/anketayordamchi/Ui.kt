@@ -44,6 +44,29 @@ interface UiDriver {
     fun log(s: String)
 }
 
+/** Daraxtda yo'q, faqat koordinata uchun sun'iy "tugun" (maydonning yuqori qismiga bosish). Hech qachon ACTION_CLICK olmaydi. */
+class SynthNode(
+    override val left: Int, override val top: Int, override val right: Int, override val bottom: Int
+) : UiNode {
+    override val cls: String = "Synth"
+    override val text: String = ""
+    override val desc: String = ""
+    override val hint: String = ""
+    override val stateDesc: String = ""
+    override val id: String = ""
+    override val checkable: Boolean = false
+    override val checked: Boolean = false
+    override val selected: Boolean = false
+    override val clickable: Boolean = false
+    override val editable: Boolean = false
+    override val enabled: Boolean = true
+    override val visible: Boolean = true
+    override val showingHint: Boolean = false
+    override val scrollable: Boolean = false
+    override val parent: UiNode? = null
+    override val children: List<UiNode> = emptyList()
+}
+
 val UiNode.cx: Int get() = (left + right) / 2
 val UiNode.cy: Int get() = (top + bottom) / 2
 val UiNode.h: Int get() = bottom - top

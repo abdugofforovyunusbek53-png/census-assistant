@@ -1,4 +1,6 @@
-# Anketa Yordamchi 1.0.0
+# Anketa Yordamchi 1.1.0
+
+> 1.1.0 da nima o'zgargani: `CHANGES_UZ.md` (mahalla "fat" qidiruvi, uy raqami hisoblagichi, 1.9, avto-tasdiq, kichik panel).
 
 Census (uz.stat.census) ilovasida variantlarni tanlaydi, matn kiritadi va tekshiradi.
 Eski "Census Assistant" (uz.censusassistant) dan **butunlay alohida ilova**: boshqa nom, boshqa paket (`uz.anketayordamchi.app`), boshqa sozlamalar. Ikkalasi yonma-yon turadi, hech biri ikkinchisini yangilamaydi.
@@ -34,11 +36,11 @@ APK'dan o'rnatilgan ilova uchun tugma avval bloklangan bo'ladi:
 ## 4. Birinchi sozlash
 1. Census'ni bir marta oching, so'ng Anketa Yordamchi'ga qayting.
 2. Ro'yxatdan **uz.stat.census** ni bosing (tanlangan ilova yangilanadi).
-3. Sozlamalar: izoh (`yaxshi`), mahalla (`Ma'rifat`), ko'cha (`I. Karimov`). O'zgartirsangiz **Sozlamalarni saqlash**. Bo'sh qoldirilgan maydon uchun tegilmaydi.
+3. Sozlamalar: izoh (`yaxshi`), mahalla (`Ma'rifat`), mahalla qidiruv so'zi (`fat`), ko'cha (`I. Karimov`), keyingi uy raqami (masalan `1`), Avto-tasdiq tugmasi. O'zgartirsangiz **Sozlamalarni saqlash**. Bo'sh qoldirilgan maydon uchun tegilmaydi.
 4. **AVTO** tugmasini bosib yoqing.
 
 ## 5. Ishlatish
-Census'da har bir sahifa (1/6 ... 6/6) ochilganda tepada panel chiqadi.
+Census'da har bir sahifa (1/6 ... 6/6) ochilganda ekran chetida kichik panel (sahifa belgisi, ▶, ■) turadi; belgini bossangiz to'liq panel ochiladi. Klaviatura ochilganda panel o'zi yashiriladi.
 - **KIRITISH**: shu sahifadagi javoblarni belgilaydi, har birini ekranni qayta o'qib tekshiradi. Natija: `OK` yoki `!` (sababi bilan).
 - **TASDIQLASH** (2/6, 3/6, 6/6): "Avtomatik to'ldirildi" yozuvi va "Tasdiqlash" tugmasi bor maydonlarni siz ko'zdan kechirgach, bir martadan tasdiqlaydi. Tasdiqlangan maydon qayta bosilmaydi.
 - **1 xodim, ayol 0 / 1** (4/6): Jami=1 va Ayollar qiymatini yozadi va tekshiradi. Qayta bossangiz, to'g'ri qiymatga tegmaydi.
