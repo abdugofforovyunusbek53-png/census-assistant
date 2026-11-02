@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- DIQQAT: INTERNET ruxsati ataylab yo'q. Ilova tarmoqqa chiqa olmaydi. -->
+<!-- DIQQAT: INTERNET ruxsati ataylab yo'q. Ilova tarmoqqa chiqa olmaydi.
+     GPS (LOCATION) va KAMERA ruxsatlari ham yo'q: ilova ularga tegmaydi, ularni faqat foydalanuvchi boshqaradi. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Census Assistant</string>
-    <string name="service_desc">Faqat tanlangan Census ilovasining ekran elementlarini telefonda lokal o\'qiydi (diagnostika). Internetga hech narsa yuborilmaydi.</string>
+    <string name="app_name">Anketa Yordamchi</string>
+    <string name="service_desc">Faqat tanlangan Census ilovasining ekran elementlarini telefonda lokal o\'qiydi, tanlangan javoblarni belgilaydi va matn kiritadi. GPS, kamera, JShShIR va Yakunlash tugmalariga tegmaydi. Internetga hech narsa yuborilmaydi.</string>
 </resources>

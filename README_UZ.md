@@ -1,81 +1,63 @@
-# Census Assistant — 1-bosqich (diagnostika), v0.1
+# Anketa Yordamchi 1.0.0
 
-Bu bosqichda ilova **hech narsani bosmaydi va kiritmaydi**. U faqat Census ilovasi
-ekranidagi elementlar (matn, id, tugma turi)ni o'qib, telefonda faylga yozadi.
-Shu ma'lumot asosida 2-bosqich (avtomatik javob kiritish) aniq yoziladi.
+Census (uz.stat.census) ilovasida variantlarni tanlaydi, matn kiritadi va tekshiradi.
+Eski "Census Assistant" (uz.censusassistant) dan **butunlay alohida ilova**: boshqa nom, boshqa paket (`uz.anketayordamchi.app`), boshqa sozlamalar. Ikkalasi yonma-yon turadi, hech biri ikkinchisini yangilamaydi.
 
-Ilovada INTERNET ruxsati yo'q — tarmoqqa chiqa olmaydi. Hamma narsa telefonda qoladi.
-Kiritish maydonlari (JSHSHIR, STIR va h.k.) matni dump'da maskalanadi (faqat uzunligi yoziladi).
+## Xavfsizlik
+- INTERNET ruxsati yo'q: ilova tarmoqqa chiqa olmaydi. Hamma narsa telefonda (`Android/data/uz.anketayordamchi.app/files`).
+- GPS va KAMERA ruxsati yo'q, ilova ularga tegmaydi. GPS nuqtasi, rasm, JShShIR/STIR, telefon, faoliyat turi/tavsifi, 2.3c, summalar: faqat o'zingiz.
+- "Keyingisi", "Orqaga", "Yakunlash", "Rasmga olish", "GPS nuqtasi" tugmalariga hech qachon tegilmaydi (kodda ikki qavat to'siq). Yakuniy topshirish faqat sizniki.
+- Faqat siz panelda tugma bosganingizda ishlaydi. **STOP** istalgan paytda to'xtatadi.
+- JShShIR, telefon, manzil kodda yo'q. Logda va dump'larda 9+ raqamlar va koordinatalar maskalanadi.
 
-## A. APK yig'ish (kompyuterda, bir marta)
-1. Android Studio (Koala yoki yangiroq) o'rnating: https://developer.android.com/studio
-2. ZIP'ni oching. Android Studio -> **Open** -> `CensusAssistant` papkasini tanlang.
-3. Gradle sinxronizatsiyasi tugaguncha kuting (birinchi marta internet kerak, 5-15 daqiqa).
-4. Menyu: **Build -> Build Bundle(s) / APK(s) -> Build APK(s)**.
-5. Tugagach "locate" bosing yoki `app/build/outputs/apk/debug/app-debug.apk` ni oching.
-6. Xato chiqsa — Build oynasidagi matnni menga yuboring, tuzataman.
+## 1. APK yig'ish (kompyuterga hech narsa o'rnatmasdan)
+1. github.com da bepul akkaunt, yangi **private** repository (masalan `anketa-yordamchi`).
+2. ZIP'ni oching. `AnketaYordamchi` papkasi ICHIDAGI hamma narsani (yashirin `.github` papkasi bilan) repository'ga yuklang. `settings.gradle.kts` repository'ning eng yuqori qatorida turishi kerak.
+   `.github` ko'rinmasa: **Add file -> Create new file**, nomiga `.github/workflows/build.yml` yozib, shu ZIP'dagi fayl matnini joylang.
+3. **Actions -> Build APK -> Run workflow**. 5-10 daqiqa kuting.
+4. Yashil belgidan keyin yozuvni oching -> pastda **Artifacts** -> `anketa-yordamchi-apk` -> yuklab oling (ichida `app-debug.apk`).
+5. Qizil belgi chiqsa: o'sha sahifadagi xato matnini yuboring.
 
-## B. Telefonga o'rnatish (Realme Note 50, Android 13)
-1. `app-debug.apk` ni telefonga yuboring (kabel, Telegram, Drive).
-2. Faylni oching -> "Noma'lum manbalardan o'rnatish"ga ruxsat bering -> O'rnatish.
+Android Studio bor bo'lsa: papkani oching -> Build -> Build APK(s).
 
-## C. Maxsus imkoniyatlar (Accessibility) xizmatini yoqish
-Android 13'da APK'dan o'rnatilgan ilova uchun bu tugma avval bloklangan bo'ladi:
-1. Sozlamalar -> Ilovalar -> Census Assistant (yoki ilovadagi "Cheklangan sozlama" tugmasi).
-2. O'ng yuqoridagi **uch nuqta** -> **Cheklangan sozlamalarga ruxsat berish** -> tasdiqlang.
-3. Sozlamalar -> Maxsus imkoniyatlar -> O'rnatilgan xizmatlar -> **Census Assistant** -> Yoqish -> Ruxsat berish.
+## 2. O'rnatish (Realme Note 50, Android 13)
+1. `app-debug.apk` ni telefonga yuboring va oching.
+2. "Noma'lum manbalardan o'rnatish"ga ruxsat bering -> **O'rnatish**.
 
-## D. Diagnostika
-1. Census Assistant ilovasini oching — yuqorida "Xizmat: YOQILGAN" turishi kerak.
-2. Census ilovasini bir marta oching, so'ng Census Assistant'ga qayting.
-3. Ro'yxatdan Census ilovasining paketini bosing (tanlangan ilova yangilanadi).
-4. Census ilovasiga o'ting. Ekran chetida ko'k **DIAG** tugmasi chiqadi.
-5. So'rovnomaning **har bir savol ekranida** DIAG'ni bosing. "Saqlandi" xabari chiqadi.
-   Hech narsani yubormang, faqat ekranlar bo'ylab yuring.
-6. Census Assistant'ga qayting -> "Oxirgi dump'ni ko'rsatish" -> "Nusxalash" ->
-   matnni menga yuboring. Har bir ekran uchun alohida dump yuboring va qaysi savol
-   ekanini yozib qo'ying.
+## 3. Accessibility xizmatini yoqish (Android 13)
+APK'dan o'rnatilgan ilova uchun tugma avval bloklangan bo'ladi:
+1. **Sozlamalar -> Ilovalar -> Anketa Yordamchi** (yoki ilovadagi "Cheklangan sozlama" tugmasi).
+2. O'ng yuqoridagi **uch nuqta -> Cheklangan sozlamalarga ruxsat berish** -> tasdiqlang.
+3. **Sozlamalar -> Maxsus imkoniyatlar (Qo'shimcha sozlamalar) -> O'rnatilgan xizmatlar -> Anketa Yordamchi -> Yoqish -> Ruxsat berish**.
+4. Ilovani oching: yuqorida "Xizmat: YOQILGAN" turishi kerak.
 
-Agar DIAG tugmasi chiqmasa yoki dump bo'sh bo'lsa — "Xatolik logini ko'rsatish"ni yuboring.
+## 4. Birinchi sozlash
+1. Census'ni bir marta oching, so'ng Anketa Yordamchi'ga qayting.
+2. Ro'yxatdan **uz.stat.census** ni bosing (tanlangan ilova yangilanadi).
+3. Sozlamalar: izoh (`yaxshi`), mahalla (`Ma'rifat`), ko'cha (`I. Karimov`). O'zgartirsangiz **Sozlamalarni saqlash**. Bo'sh qoldirilgan maydon uchun tegilmaydi.
+4. **AVTO** tugmasini bosib yoqing.
 
-## E. Android Studio o'rnatmasdan, internet orqali APK yig'ish (GitHub Actions, bepul)
-1. https://github.com ga kiring (akkaunt bo'lmasa, bepul oching) -> **New repository** -> nom: `census-assistant` -> **Create**.
-2. Repozitoriyada **uploading an existing file** havolasini bosing. ZIP'ni oching va
-   `CensusAssistant` papkasining ICHIDAGI hamma narsani (app, gradle, .github, settings.gradle.kts va h.k.)
-   sudrab tashlang -> **Commit changes**. `settings.gradle.kts` repozitoriyning eng yuqori qatorida turishi kerak.
-   (`.github` papkasi ko'rinmasa: **Add file -> Create new file**, nomiga `.github/workflows/build.yml`
-   deb yozing va shu ZIP'dagi `.github/workflows/build.yml` matnini joylang.)
-3. **Actions** bo'limi -> chapdan **Build APK** -> **Run workflow**. 5-10 daqiqa kuting.
-4. Yashil belgi chiqqach, ishga tushirilgan yozuvni oching -> pastda **Artifacts** -> `census-assistant-apk`
-   ni yuklab oling (ZIP ichida `app-debug.apk`).
-5. Qizil belgi chiqsa — o'sha sahifadagi xato matnini menga yuboring.
+## 5. Ishlatish
+Census'da har bir sahifa (1/6 ... 6/6) ochilganda tepada panel chiqadi.
+- **KIRITISH**: shu sahifadagi javoblarni belgilaydi, har birini ekranni qayta o'qib tekshiradi. Natija: `OK` yoki `!` (sababi bilan).
+- **TASDIQLASH** (2/6, 3/6, 6/6): "Avtomatik to'ldirildi" yozuvi va "Tasdiqlash" tugmasi bor maydonlarni siz ko'zdan kechirgach, bir martadan tasdiqlaydi. Tasdiqlangan maydon qayta bosilmaydi.
+- **1 xodim, ayol 0 / 1** (4/6): Jami=1 va Ayollar qiymatini yozadi va tekshiradi. Qayta bossangiz, to'g'ri qiymatga tegmaydi.
+- **TASHXIS**: hech narsa o'zgartirmaydi. Ekrandagi savollar, variantlar va ularning holatini `dump_trace_...` faylga yozadi.
+- **DIAG** (ko'k tugma): xom dump.
+- **STOP**: darhol to'xtatadi va AVTO'ni o'chiradi.
 
-## F. AVTO rejimi (v0.3)
-Yangilash: GitHub repozitoriyda `app/` papkasidagi fayllarni ZIP'dagilar bilan almashtiring (E bo'limi), Actions yangi APK yig'adi. Yangi APK'ni eskisining ustiga o'rnating; o'rnatilmasa, avval dump'larni kompyuterga ko'chirib oling.
+Sahifa bo'yicha nima kiritiladi:
+| Sahifa | Avtomatik | Qo'lda (siz) |
+|---|---|---|
+| 1/6 | 0.0 Boshqa joy, 0.1 Bino, 0.2 Umumiy kirish, 0.3 Mahalla va Ko'cha (qidirib, to'g'riligini tekshirib), 0.4 Ha, ochiq | GPS, rasm, 0.3 uy raqami |
+| 2/6 | 1.4, 1.5 (tekshiriladi), 1.5d Naqd, 1.9 Yo'q (veb-sayt yo'q) | JShShIR, 1.10 telefon, TASDIQLASH |
+| 3/6 | 2.1 holati (faqat ko'rsatiladi), 2.4, 2.6 | 2.3a, 2.3d, 2.3c, TASDIQLASH |
+| 4/6 | tugma bosilganda Jami=1, Ayollar=0/1 | |
+| 5/6 | | 4.1, 4.2 summalar |
+| 6/6 | 5.4c Ha, 5.5 Yuzma-yuz, 5.5b (tekshiriladi), 5.5d Izoh | 5.5a, 5.5c, Yakunlash |
 
-Ishlatish:
-1. Census Assistant'da Census ilovasi (uz.stat.census) tanlangan bo'lsin, **AVTO** tugmasini bosib yoqing.
-2. Census ilovasida har bir sahifa (1/6 ... 6/6) ochilganda tepada panel chiqadi: nima kiritilishi va nimani o'zingiz kiritishingiz yozilgan.
-3. **KIRITISH** bosilgandagina ilova variantlarni belgilaydi. Natija panelda (OK / ! belgilari) chiqadi. "!" bo'lgan joyni o'zingiz tekshiring.
-4. **YOPISH** panelni yashiradi. **STOP** AVTO'ni darhol o'chiradi.
+## 6. Xato bo'lsa
+Ilovada **Xatolik/AVTO logini ko'rsatish** -> nusxalab yuboring. Har bir qatorda sahifa, savol, holat va sabab bor. "Variant topilmadi" yoki "holat ko'rinmadi" chiqsa: o'sha sahifada **TASHXIS** bosing, so'ng ilovada "Oxirgi dump'ni ko'rsatish" -> nusxalab yuboring.
 
-Ilova faqat shularni qiladi: ro'yxatdan tayyor variantni belgilash (RadioButton/CheckBox) va, agar sozlamada izoh yozgan bo'lsangiz, bo'sh izoh maydoniga matn yozish. Boshqa variant allaqachon tanlangan bo'lsa, o'zgartirmaydi, faqat "!" bilan xabar beradi.
-Ilova HECH QACHON bosmaydi: Keyingisi, Orqaga, Tasdiqlash, Yakunlash, GPS nuqtasi, Rasmga olish. Raqamlar, telefon, F.I.Sh., STIR/JShShIR, faoliyat turi va "5.5 afzal usul" sening qo'lingda.
-
-DIAG dump'larida endi 9 va undan uzun raqamlar (JShShIR) va GPS koordinatalari maskalanadi.
-
-Bu versiya telefonda sinalmagan. Har bir sahifada avval KIRITISH natijasini ko'zdan kechiring.
-
-## G. v0.4 yangiliklari
-- **TASDIQLASH tugmasi** (2/6 va 3/6): "Avtomatik to'ldirildi" yozuvi bor maydonlarni avval o'zing ko'zdan kechirasan, keyin panelda bir marta TASDIQLASH bosasan; ilova shu sahifadagi "Tasdiqlash" tugmalarini bosib chiqadi. O'zi, sen bosmasdan, hech qachon tasdiqlamaydi.
-- **4/6 xodimlar soni**: panelda "1 xodim, ayol 0" va "1 xodim, ayol 1" tugmalari. Respondentga mosini bos. Boshqacha bo'lsa (yollanma ishchi bor), qo'lda kirit. "Ayollar" soni "Jami"dan oshmasligi kerak.
-- 5/6 xarajat va aylanma hamon qo'lda: har bir respondent uchun o'z baholaringni kiritasan.
-
-## H. v0.5 tuzatishlar
-- 1.5, 1.9, 1.4, 0.x, 2.x savollari: savol sarlavhasi ekrandan chiqib ketgan bo'lsa ham, matni noyob variant butun ekrandan qidiriladi. Pastga, topilmasa tepaga qarab ikki marta skan qilinadi.
-- Tanlash/yozishdan keyin natija yangi ekran nusxasida qayta o'qib tekshiriladi; tasdiqlanmasa "OK" yozilmaydi.
-- Mahalla/ko'cha tekshiruvi harf va raqamdan boshqa belgilarni (apostrof, nuqta, bo'shliq) hisobga olmaydi ("rifat", "ikarimov").
-- TASDIQLASH: har savol kodi (1.1, 1.5, 2.1 ...) bir marta; bosilgach yozuv yo'qolganini tekshiradi; sabab logga yoziladi.
-- 3.1: to'g'ri qiymat turgan bo'lsa, qayta yozilmaydi; sen tugma bosgan bo'lsang, boshqa qiymat almashtiriladi va yangi nusxada tekshiriladi.
-- 5.5 uchun alohida tugma (6/6): respondent shunday degan bo'lsagina o'zing bosasan.
-- Izoh matni sozlamada "yaxshi" bo'lib turadi (o'zgartirish mumkin).
+## 7. Qo'shimcha eslatma
+Zaxira usul (matn kiritish ishlamasa) vaqtincha telefon buferiga yozadi (faqat izoh/son kabi shaxsiy bo'lmagan matn). Shundan keyin bufer tarkibi shu matn bo'ladi.

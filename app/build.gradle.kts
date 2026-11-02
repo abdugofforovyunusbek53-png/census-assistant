@@ -4,15 +4,16 @@ plugins {
 }
 
 android {
-    namespace = "uz.censusassistant"
+    namespace = "uz.anketayordamchi"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "uz.censusassistant.avto05"
+        // Eski "uz.censusassistant" dan butunlay boshqa ID: ikkalasi yonma-yon o'rnatiladi, hech biri yangilanmaydi.
+        applicationId = "uz.anketayordamchi.app"
         minSdk = 26
         targetSdk = 33
-        versionCode = 5
-        versionName = "0.5-avto"
+        versionCode = 1
+        versionName = "1.0.0"
     }
 
     buildTypes {

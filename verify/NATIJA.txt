@@ -1,0 +1,202 @@
+== nameMatch / searchQueries
+== 1-bet: mahalla + ko'cha qidiruv (ilova xom qidiruvi apostrofga sezgir), tanlash va tekshirish
+
+    OK 0.0 Joylashuv turi -> Boshqa joy (tasdiqlandi: checked)
+    OK 0.1 -> Bino: g'ishtdan qurilgan (tasdiqlandi: checked)
+    OK 0.2 -> Umumiy kirish joyi (tasdiqlandi: checked)
+    OK 0.3 Mahalla -> Ma'rifat (tanlandi: Ma'rifat)
+    OK 0.3 Ko'cha -> I. Karimov (tanlandi: I.Karimov)
+    OK 0.4 -> Ha, ochiq (tasdiqlandi: checked)
+== 1-bet: faqat o'xshash natija bo'lsa TANLANMAYDI
+
+    OK 0.0 Joylashuv turi -> Boshqa joy (tasdiqlandi: checked)
+    OK 0.1 -> Bino: g'ishtdan qurilgan (tasdiqlandi: checked)
+    OK 0.2 -> Umumiy kirish joyi (tasdiqlandi: checked)
+    ! 0.3 Mahalla -> Ma'rifat: ro'yxatda aynan mos natija topilmadi. O'xshash (avtomatik tanlanmadi): Ma'rifat-2. Ro'yxat ochiq qoldi
+    ! 0.4 -> Ha, ochiq: bajarilmadi (Ochilgan ro'yxat/oyna yopilmagan - to'xtadi (qo'lda yoping))
+    ! 0.3 Ko'cha -> I. Karimov: bajarilmadi (Ochilgan ro'yxat/oyna yopilmagan - to'xtadi (qo'lda yoping))
+    NOTE: Ochilgan ro'yxat/oyna yopilmagan - to'xtadi (qo'lda yoping)
+== 1-bet: ikki aniq natija - tanlanmaydi
+
+    OK 0.0 Joylashuv turi -> Boshqa joy (tasdiqlandi: checked)
+    OK 0.1 -> Bino: g'ishtdan qurilgan (tasdiqlandi: checked)
+    OK 0.2 -> Umumiy kirish joyi (tasdiqlandi: checked)
+    OK 0.3 Mahalla -> Ma'rifat (tanlandi: Ma'rifat)
+    ! 0.3 Ko'cha -> I. Karimov: bir nechta aynan mos natija (I. Karimov | I. Karimov ko'chasi) - TANLANMADI, o'zing tanla
+    ! 0.4 -> Ha, ochiq: bajarilmadi (Ochilgan ro'yxat/oyna yopilmagan - to'xtadi (qo'lda yoping))
+    NOTE: Ochilgan ro'yxat/oyna yopilmagan - to'xtadi (qo'lda yoping)
+== 1-bet: mahalla allaqachon tanlangan - ro'yxat ochilmaydi
+
+    OK 0.0 Joylashuv turi -> Boshqa joy (tasdiqlandi: checked)
+    OK 0.1 -> Bino: g'ishtdan qurilgan (tasdiqlandi: checked)
+    OK 0.2 -> Umumiy kirish joyi (tasdiqlandi: checked)
+    OK 0.3 Mahalla -> Ma'rifat (allaqachon tanlangan: m.f.y. Ma'rifat)
+    OK 0.3 Ko'cha -> I. Karimov (tanlandi: I.Karimov)
+    OK 0.4 -> Ha, ochiq (tasdiqlandi: checked)
+== 1-bet: qidiruv maydoni yo'q (oddiy ro'yxat)
+
+    OK 0.0 Joylashuv turi -> Boshqa joy (tasdiqlandi: checked)
+    OK 0.1 -> Bino: g'ishtdan qurilgan (tasdiqlandi: checked)
+    OK 0.2 -> Umumiy kirish joyi (tasdiqlandi: checked)
+    OK 0.3 Mahalla -> Ma'rifat (tanlandi: Ma'rifat)
+    OK 0.3 Ko'cha -> I. Karimov (tanlandi: I.Karimov)
+    OK 0.4 -> Ha, ochiq (tasdiqlandi: checked)
+== 2-bet: 1.5 'O'zini o'zi band qilgan shaxs' tanlangan holat turi = own
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.5 'O'zini o'zi band qilgan shaxs' tanlangan holat turi = stateDesc
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: stateDesc)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.5 'O'zini o'zi band qilgan shaxs' tanlangan holat turi = selectedOnly
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: selected)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.5 'O'zini o'zi band qilgan shaxs' tanlangan holat turi = parent
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.5 holati ko'rinmasa - OK DEMAYDI, halol xabar
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    ! 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: tanlangan holat Accessibility orqali ko'rinmadi (variantlar: Mas'uliyati cheklangan ja[off]; O'zini o'zi band qilgan s[off]; Norasmiy (ro'yxatdan o'tg[off]). Faqat 'O'zini o'zi band qilgan shaxs' yoqilgan, qolganlari o'chirilgan: ehtimol aynan shu tanlangan, ko'zda tekshir. TASHXIS bosib trace yuboring
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.5 hech narsa tanlanmagan va yoqiq bo'lsa - tanlaydi va tekshiradi
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs (tasdiqlandi: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.9 oxirgi variant (chiziqcha U+2011, matn yonida, ekrandan pastda) tanlanadi
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    OK 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas (tasdiqlandi: checked)
+== 2-bet: 1.9 variant matni/holati turi = own
+== 2-bet: 1.9 variant matni/holati turi = stateDesc
+== 2-bet: 1.9 variant matni/holati turi = parent
+== 2-bet: 1.9 da boshqa variant tanlangan bo'lsa - tegilmaydi
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    ! 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas: boshqa variant tanlangan (Ha, ijtimoiy tarmoqlarda muloqot uchun f) - o'zgartirilmadi
+== 2-bet: bosish ishlamasa (ilova holatni o'zgartirmaydi) - bitta bosish, halol xabar, sikl yo'q
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    ! 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas: bosildi, lekin tanlanganini tasdiqlab bo'lmadi - holat o'zgarmadi (checked=false, selected=false, stateDesc=""). Qo'lda tekshir
+== 2-bet: ACTION_CLICK false qaytarsa - koordinata bilan bir marta
+== TASDIQLASH: har bir maydon bir marta, skroldan keyin takror bosilmaydi
+
+    OK 1.1: tasdiqlandi (Tasdiqlash tugmasi yo'qoldi)
+    OK 1.5: tasdiqlandi (Tasdiqlash tugmasi yo'qoldi)
+
+    - Bu sahifada tasdiqlanadigan "Avtomatik to'ldirildi" maydon yo'q (xato emas: hammasi tasdiqlangan yoki talab qilinmaydi)
+== TASDIQLASH: ilova qabul qilmasa - bir marta bosiladi, keyin qayta bosilmaydi
+
+    ! 1.1: bosildi, lekin Tasdiqlash tugmasi hamon ko'rinadi - ilova qabul qilmagan bo'lishi mumkin, o'zing tekshir
+    ! 1.5: bosildi, lekin Tasdiqlash tugmasi hamon ko'rinadi - ilova qabul qilmagan bo'lishi mumkin, o'zing tekshir
+
+    ! 1.1: avval bosilgan, lekin hamon tasdiqlanmagan ko'rinadi - qayta bosilmadi, o'zing tekshir
+    ! 1.5: avval bosilgan, lekin hamon tasdiqlanmagan ko'rinadi - qayta bosilmadi, o'zing tekshir
+== TASDIQLASH: tugmasiz marker - bosilmaydi, ma'lumot
+
+    - 1.1: Avtomatik to'ldirildi yozuvi bor, lekin Tasdiqlash tugmasi yo'q (allaqachon tasdiqlangan bo'lishi mumkin)
+    - 1.5: Avtomatik to'ldirildi yozuvi bor, lekin Tasdiqlash tugmasi yo'q (allaqachon tasdiqlangan bo'lishi mumkin)
+== TASDIQLASH: 'Avtomatik to'ldirildi' bo'lmagan sahifa - xato emas
+
+    - Bu sahifada tasdiqlanadigan "Avtomatik to'ldirildi" maydon yo'q (xato emas: hammasi tasdiqlangan yoki talab qilinmaydi)
+== 3-bet: 2.1 holati
+
+    OK 2.1 Faoliyat boshlangan yil (faqat holati ko'rsatiladi): to'ldirilgan ("2025") va tasdiqlangan/tasdiq talab qilinmaydi
+    OK 2.4 -> Asosan aholi / uy xo'jaliklari (tasdiqlandi: checked)
+    OK 2.6 -> Import ham, eksport ham yo'q (tasdiqlandi: checked)
+== 3-bet: 2.6 da boshqa belgi turgan bo'lsa tegilmaydi
+
+    OK 2.1 Faoliyat boshlangan yil (faqat holati ko'rsatiladi): to'ldirilgan ("2025") va tasdiqlangan/tasdiq talab qilinmaydi
+    OK 2.4 -> Asosan aholi / uy xo'jaliklari (tasdiqlandi: checked)
+    ! 2.6 -> Import ham, eksport ham yo'q: boshqa variant tanlangan (Tovarlar eksporti) - o'zgartirilmadi
+== 4-bet: xodimlar soni (Jami=1, Ayollar=0) yonma-yon maydonlar
+
+    OK 3.1 Jami -> 1
+    OK 3.1 Ayollar -> 0
+
+    OK 3.1 Jami -> 1 (allaqachon to'g'ri: "1")
+    OK 3.1 Ayollar -> 0 (allaqachon to'g'ri: "0")
+== 4-bet: noto'g'ri qiymat foydalanuvchi tugmasi bilan tuzatiladi; ayol 1
+
+    OK 3.1 Jami -> 1
+    OK 3.1 Ayollar -> 1
+== 4-bet: set e'tiborsiz qoldirilsa - paste zaxirasi, tekshiruv bilan
+
+    OK 3.1 Jami -> 1 (paste)
+    OK 3.1 Ayollar -> 0 (paste)
+== 4-bet: hech narsa yozilmasa - OK DEMAYDI
+
+    ! 3.1 Jami -> 1: yozilganini tasdiqlab bo'lmadi (maydonda: "") - o'zing kirit
+    ! 3.1 Ayollar -> 0: yozilganini tasdiqlab bo'lmadi (maydonda: "") - o'zing kirit
+== 6-bet: 5.4c, 5.5, 5.5b, izoh 'yaxshi'; 5.5a va 5.5c ga tegilmaydi
+
+    OK 5.4c -> Ha (tasdiqlandi: checked)
+    OK 5.5 So'rovnoma usuli -> Yuzma-yuz intervyu (tasdiqlandi: checked)
+    OK 5.5b Lavozim: egasi/direktor (faqat tekshiriladi): mos (holat: checked)
+    OK 5.5d Izoh -> "yaxshi"
+== 6-bet: izoh sarlavhasi boshqa kod bilan ('5.6 Izoh') sarlavha bo'yicha topiladi
+
+    OK 5.4c -> Ha (tasdiqlandi: checked)
+    OK 5.5 So'rovnoma usuli -> Yuzma-yuz intervyu (tasdiqlandi: checked)
+    OK 5.5b Lavozim: egasi/direktor (faqat tekshiriladi): mos (holat: checked)
+    OK 5.5d Izoh -> "yaxshi"
+== 6-bet: izoh maydoni to'lgan bo'lsa tegilmaydi; bo'sh sozlama - yozilmaydi
+
+    OK 5.4c -> Ha (tasdiqlandi: checked)
+    OK 5.5 So'rovnoma usuli -> Yuzma-yuz intervyu (tasdiqlandi: checked)
+    OK 5.5b Lavozim: egasi/direktor (faqat tekshiriladi): mos (holat: checked)
+    ! 5.5d Izoh -> "yaxshi": maydon bo'sh emas (<14 belgi>) - tegilmadi
+== 6-bet: izoh maydoni (EditText) yo'q - halol xabar
+
+    OK 5.4c -> Ha (tasdiqlandi: checked)
+    OK 5.5 So'rovnoma usuli -> Yuzma-yuz intervyu (tasdiqlandi: checked)
+    OK 5.5b Lavozim: egasi/direktor (faqat tekshiriladi): mos (holat: checked)
+    ! 5.5d Izoh -> "yaxshi": kiritish maydoni (EditText) topilmadi - TASHXIS bosing
+== XAVFSIZLIK: tanlov qatori daraxtda bo'lmasa 'Keyingisi'/boshqa tugma bosilmaydi
+
+    ! 0.0 Joylashuv turi -> Boshqa joy: savol ekranda topilmadi
+    ! 0.1 -> Bino: g'ishtdan qurilgan: savol ekranda topilmadi
+    ! 0.2 -> Umumiy kirish joyi: savol ekranda topilmadi
+    ! 0.4 -> Ha, ochiq: savol ekranda topilmadi
+    ! 0.3 Mahalla -> Ma'rifat: ochuvchi element topilmadi - TASHXIS bosing
+    ! 0.3 Ko'cha -> I. Karimov: savol ekranda topilmadi
+== XAVFSIZLIK: Yakunlash/Keyingisi nomli variant ham bosilmaydi
+
+    OK 0.4 -> Ha, ochiq (tasdiqlandi: checked)
+    ! 0.0 Joylashuv turi -> Boshqa joy: savol ekranda topilmadi
+    ! 0.1 -> Bino: g'ishtdan qurilgan: savol ekranda topilmadi
+    ! 0.2 -> Umumiy kirish joyi: savol ekranda topilmadi
+    ! 0.3 Mahalla -> Ma'rifat: savol ekranda topilmadi
+    ! 0.3 Ko'cha -> I. Karimov: savol ekranda topilmadi
+== STOP: ish o'rtasida to'xtaydi
+
+    OK 1.4 -> Alohida mustaqil korxona/shaxs (tasdiqlandi: checked)
+    OK 1.5 Huquqiy maqom -> O'zini o'zi band qilgan shaxs: mos (holat: checked)
+    OK 1.5d -> Naqd pul orqali (tasdiqlandi: checked)
+    ! 1.9 Internet -> Yo'q, veb-sayt va ijtimoiy tarmoqlar mavjud emas: bajarilmadi (STOP bosildi)
+    NOTE: STOP bosildi
+== Census oldingi planda emas - to'xtaydi
+== Sahifa mos kelmasa - to'xtaydi (noto'g'ri sahifaga yozmaydi)
+== TASHXIS: hech narsa o'zgartirmaydi, variant holatini ko'rsatadi
+
+=== NATIJA: o'tdi=123, muvaffaqiyatsiz=0 ===
